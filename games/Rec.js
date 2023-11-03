@@ -1,7 +1,19 @@
 // game logic
-let inventory = [];
+let inventory = {
+  bottles: 0,
+  cardboard: 0
+};
 let canMove = true;
 let currentLevel;
+
+const winConditions = {
+  // levels in order
+  park: {
+    bottles: 3,
+    cardboard: 0
+  }
+  
+};
 
 let row;
 let column;
@@ -151,12 +163,18 @@ function movementControl(direction){
 let level = 0;
 const levels = [
   map`
-p...ww
-.....w
-..ww..
-w.w...
-b.w.wc
-wwwwww`
+p...........
+..........w.
+........www.
+......w.w...
+...ww.b.....
+...w........
+...ww.....ww
+..w.w......w
+.bw.ww..ww..
+bw....w.w...
+.w......w.wc
+ww....wwwwww`
 ];
 
 // Maps & Environment
@@ -191,26 +209,102 @@ afterInput(() => {
   row = getFirst(player).x;
   column = getFirst(player).y;
 
+  //checks everything gatito is on
   currentTile = getTile(row, column);
-  if (currentTile.includes("b")){
-      addText("ohfd", {y: 5, color: color`3`});
-  }
 
-  if (currentTile.includes("bottle")){
-    bottlePickup();
-    addText("hi", {y: 4, color: color`3`});
-  } else{
-    addText("no", {y: 4, color: color`3`});
+  if (currentTile[1]){
+    
+    switch (currentTile[1].type){
+        
+      // waterbottle
+      case "b":
+        bottlePickup();
+        break;
+        
+      // recycling bin
+      case "c":
+        recycle();
+        break;
+        
+    }
+    
   }
   
 });
 
 // recycling and game objectives
 function bottlePickup(){
-  getFirst(bottle).remove();
-  inventory.add("bottle");
+
+  // as long as gatito has less than 3 items in her inventory
+  if ((inventory.bottles + inventory.cardboard) < 2){
+    
+    getFirst(bottle).remove();
+    inventory.bottles += 1;
+    
+    addText("Bottle picked up!", {y: 4, color: color`5`});
+    
+    /*
+    setTimeout(() => {
+      clearText();
+    }, 1000);
+    */
+    
+  };
+    
 };
 
 function recycle(){
-  inventory.splice(inventory.indexOf("bottle"), 1);
+  
+  if (inventory.bottles != 0){
+    console.log("BOTTLE RECYCLED");
+    inventory.bottles = inventory.bottles - inventory.bottles;           
+  }
+  
 };
+
+function fail(){
+  console.log("hi")
+};
+
+function timer(){
+  let seconds = 180;
+  const timerInterval = setInterval(countdown, 1000);
+  
+  function countdown(){
+    seconds -= 1;
+    dinglebob(14);
+    
+    function dinglebob(xPos){
+      clearText();
+      
+      if (10 <= seconds && seconds < 100){
+          xPos = 15;
+        
+      } else if (0 <= seconds && seconds < 10){     
+          xPos = 16;
+        
+      } else if (seconds < 1){
+          clearInterval(timerInterval);
+          fail();
+          return;
+      };
+      
+      return(
+        addText(seconds.toString(), {x: xPos, y: 1, color: color`0`})
+      );
+      
+    };
+    
+  };
+
+  countdown();
+
+};
+
+// game loop
+
+function initiate(){
+  timer();
+};
+
+initiate();
