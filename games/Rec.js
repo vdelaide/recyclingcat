@@ -1,4 +1,23 @@
+/*
+Recycling Cat by @vdelaide on Github.com & Discord
+
+Description: 
+You're a wandering cat living her best life, until, you look around
+and see the people of the world for what they really are; litterbugs.
+At that realization, Gatita would make it her life's mission to
+recycle all that she can, to the best of her ability.
+
+How to Play:
+Pick up litter by moving close to it, and take it to a recycling bin
+You only have 2 slots in your inventory
+
+W to move up, A to move left, S to move down, D to move right
+J to select, K to restart, L to xyz, I to xyz
+
+*/
+
 // game logic
+
 let inventory = {
   bottles: 0,
   cardboard: 0
@@ -11,6 +30,16 @@ const winConditions = {
   park: {
     bottles: 3,
     cardboard: 0
+  },
+  
+  highway: {
+    bottles: 10,
+    cardboard: 0
+  },
+
+  campsite: {
+    bottles: 15,
+    cardboard: 0
   }
   
 };
@@ -19,21 +48,12 @@ let row;
 let column;
 let currentTile;
 
-
 // objects
+const cursor = "t";
+
 const player = "p";
-
-const bottle = "b";
-const cardboard = "y";
-const bottleBin = "c";
-
-const wall = "w";
-const environment1 = "e";
-const environment2 = "f";
-
-// player Sprites, Environment
-setLegend(
-  [player, bitmap`
+let playerBitmap = bitmap`
+................
 ................
 ................
 ................
@@ -48,8 +68,37 @@ setLegend(
 ....000020002...
 ................
 ................
+................`;
+
+const bottle = "b";
+const cardboard = "y";
+const bottleBin = "c";
+
+const wall = "w";
+const environment1 = "e";
+const environment2 = "f";
+
+// Movement
+
+setLegend(
+  [cursor, bitmap`
+................
+................
+................
+................
+.....777777.....
+....77777777....
+...7777777777...
+...7777777777...
+...7777777777...
+...7777777777...
+...7777777777...
+....77777777....
+.....777777.....
+................
 ................
 ................`],
+  [player, playerBitmap],
   [bottle, bitmap`
 ................
 ....00000.......
@@ -120,7 +169,6 @@ CCCCCCCCCCCCCCCC`],
 2222222222222222`]
 );
 
-// Movement
 const movePause = 175;
 const moveSound = tune`
 500: B4~500,
@@ -128,7 +176,7 @@ const moveSound = tune`
 500: F5^500 + E4^500,
 14500`;
 
-function movementControl(direction){
+function movementControl(state, direction){
   
   if (canMove === true){
     
@@ -143,13 +191,119 @@ function movementControl(direction){
         getFirst(player).y += 1;
         break;
       case "left":
+        playerBitmap = bitmap`
+................
+................
+................
+................
+...0...00.......
+...100010.......
+.0.0000000..0...
+..0600600....0..
+.0.0000000...0..
+....22222....0..
+....22200...0...
+....02000000....
+...200020000....
+................
+................
+................`;
         getFirst(player).x -= 1;
         break;
       case "right":
+        playerBitmap = bitmap`
+................
+................
+................
+................
+.......00...0...
+.......010001...
+...0..0000000.0.
+..0....0060060..
+..0...0000000.0.
+..0....22222....
+...0...00222....
+....00000020....
+....000020002...
+................
+................
+................`;
         getFirst(player).x += 1;
         break;
-        
     };
+
+    // If need be revise the below for better performance
+    setLegend(
+      [player, playerBitmap],
+      [bottle, bitmap`
+    ................
+    ....00000.......
+    ....02120.......
+    ....00000.......
+    .....070........
+    ....07770.......
+    ...0777270......
+    ...0777270......
+    ....55525.......
+    ...0777770......
+    ...0777770......
+    ....55555.......
+    ...0777770......
+    ...0000000......
+    ................
+    ................`],
+      [bottleBin, bitmap`
+    ................
+    ................
+    ................
+    ................
+    ................
+    ................
+    ................
+    ...444444444....
+    ...444424444....
+    ....4424244.....
+    ....4242424.....
+    ....4424244.....
+    .....44244......
+    .....44444......
+    ................
+    ................`],
+      [wall, bitmap`
+    CCCCCCCCCCCCCCCC
+    CCCCCCCC11CFCCCC
+    CCCCCC111CFFCCCC
+    C33C11CCCFFCCCCC
+    CCC113FFFFFFCCCC
+    CCC1FFFF3333C1CC
+    CC1FCFFCCCC331CC
+    CC1FFFCCCCC33C1C
+    CC1FFF3CCCC3CC1C
+    CC1FCFFCCC3CCC1C
+    CC1FFF3F3C3CCC1C
+    C1CCCFFFF33CC1CC
+    C11CCC11FFF111CC
+    CC1111CC1111FCCC
+    CCCCCCCCCCCFFCCC
+    CCCCCCCCCCCCCCCC`],
+      [environment1, bitmap`
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222`]
+    );
     
     // prevents zooming across the map
     setTimeout(() => {
@@ -163,18 +317,48 @@ function movementControl(direction){
 let level = 0;
 const levels = [
   map`
-p...........
-..........w.
-........www.
-......w.w...
-...ww.b.....
-...w........
-...ww.....ww
-..w.w......w
-.bw.ww..ww..
-bw....w.w...
-.w......w.wc
-ww....wwwwww`
+...................
+...................
+...................
+...................
+...................
+.t.................
+...................
+...................
+...................
+...................
+...................
+...................
+...................
+...................
+...................
+...................`, //title screen
+  map`
+............
+p.......w...
+......www...
+....w.w.....
+.ww.b.......
+.w..........
+.ww.....ww..
+w.w......w..
+w.ww..ww....
+....w.w.....
+......w.wc..
+....wwwwww..`, //park, room 1
+  map`
+............
+............
+............
+............
+............
+............
+............
+............
+............
+............
+............
+............`, //park, room 2
 ];
 
 // Maps & Environment
@@ -187,55 +371,13 @@ setPushables({
   [ player ]: []
 });
 
-// Player input
+// ###############################################
+// ############### GAME OBJECTIVES ###############
+// ###############################################
 
-onInput("w", () => {
-  movementControl("up");
-});
-
-onInput("a", () => {
-  movementControl("left");
-});
-
-onInput("s", () => {
-  movementControl("down");
-});
-
-onInput("d", () => {
-  movementControl("right");
-});
-
-afterInput(() => {
-  row = getFirst(player).x;
-  column = getFirst(player).y;
-
-  //checks everything gatito is on
-  currentTile = getTile(row, column);
-
-  if (currentTile[1]){
-    
-    switch (currentTile[1].type){
-        
-      // waterbottle
-      case "b":
-        bottlePickup();
-        break;
-        
-      // recycling bin
-      case "c":
-        recycle();
-        break;
-        
-    }
-    
-  }
-  
-});
-
-// recycling and game objectives
 function bottlePickup(){
 
-  // as long as gatito has less than 3 items in her inventory
+  // as long as gatita has less than 3 items in her inventory
   if ((inventory.bottles + inventory.cardboard) < 2){
     
     getFirst(bottle).remove();
@@ -260,6 +402,14 @@ function recycle(){
     inventory.bottles = inventory.bottles - inventory.bottles;           
   }
   
+};
+
+function nextRoom(y){
+  setMap(levels[y])
+};
+
+function nextLevel(){
+  setMap(levels[x])
 };
 
 function fail(){
@@ -301,10 +451,153 @@ function timer(){
 
 };
 
-// game loop
+// #########################################
+// ############### GAME LOOP ###############
+// #########################################
 
-function initiate(){
+function displayTitle(){
+  
+  clearText();
+  
+  addText("RECYCLING CAT", {x: 3, y:2, color: color`0`});
+  addText("by me :3", {x: 3, y: 3, color: color`0`});
+  
+  addText("START", {x: 3, y: 5, color: color`0`});
+  addText("MISC", {x: 3, y: 6, color: color`0`});
+  addText("MISC", {x: 3, y: 7, color: color`0`});
+  addText("CREDITS", {x: 3, y: 8, color: color`0`});
+  
+  onInput("w", () => {
+    console.log("display title")
+
+    getFirst(cursor).y -= 1;
+    
+    if (getFirst(cursor).y < 5) {
+      getFirst(cursor).y = 8;
+    }
+    
+  })
+
+  onInput("s", () => {
+  
+    getFirst(cursor).y += 1;
+    
+    if (getFirst(cursor).y > 8) {
+      getFirst(cursor).y = 5;
+    }
+    
+  })
+  
+  onInput("j", () => {
+    
+    switch (getFirst(cursor).y){
+        
+      case 5: //start game
+        startGame();
+        break;
+        
+      case 6: //misc
+        break;
+        
+      case 7: //misc
+        break;
+        
+      case 8: //credits
+        break;
+        
+    };
+    
+  })
+  
+};
+
+function startGame(){
+  
+  clearText();
+  setMap(levels[1]); //first level
   timer();
+
+  /*
+  
+    BUG DESCRIPTIION: 
+    -----------
+    cannot overwrite previous input functions, see below
+    
+    SOLUTIONS?:
+    -----------
+    *Make input functions conditional (between levels)
+    ---
+    ** CON(S): 
+    *** Intensive on the console, has to run each time
+    
+    *Turn the sprite that should move into a variable
+    ** CON(S): 
+    *** most difficult to implement (some things might break)
+    
+    *Change the sprite bitmap and restrict its movement on the x axis
+    ---
+    ** PRO(S):
+    *** Probably the best option, least intensive, only one controllable sprite
+    *** easiest to implement
+    ** CON(S): 
+    *** a bit hacky
+  
+  */
+  
+  onInput("w", () => {
+    console.log("startgame")
+    movementControl("up");
+  });
+  
+  onInput("a", () => {
+    movementControl("left");
+  });
+  
+  onInput("s", () => {
+    movementControl("down");
+  });
+  
+  onInput("d", () => {
+    movementControl("right");
+  });
+
+  afterInput(() => {
+    row = getFirst(player).x;
+    column = getFirst(player).y;
+  
+    //checks everything gatita is on
+    currentTile = getTile(row, column);
+  
+    if (currentTile[1]){
+      
+      switch (currentTile[1].type){
+          
+        // waterbottle
+        case "b":
+          bottlePickup();
+          break;
+          
+        // recycling bin
+        case "c":
+          recycle();
+          break;
+  
+        case "o":
+          nextRoom();
+          break;
+          
+      }
+      
+    };
+    
+  });
+  
+};
+
+// potentially an unnecessary function
+function initiate(){
+  displayTitle();
+  
 };
 
 initiate();
