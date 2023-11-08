@@ -9,7 +9,7 @@ At that realization, Gatita would make it her life's mission to
 recycle all that she can, to the best of her ability.
 
 How to Play:
-Pick up litter by moving close to it, and take it to a recycling bin
+Pick up litter by moving onto to it, and take it to a recycling bin
 You only have 2 slots in your inventory
 
 W to move up, A to move left, S to move down, D to move right
@@ -19,6 +19,8 @@ J to select, K to restart, L to xyz, I to xyz
 
 // game logic
 
+let weight = 0;
+let totalWeight = 0; //check against winconditions
 let canMove = true;
 let inventory = {
   bottles: 0,
@@ -27,20 +29,9 @@ let inventory = {
 
 const winConditions = {
   // levels in order
-  park: {
-    bottles: 3,
-    cardboard: 0
-  },
-  
-  highway: {
-    bottles: 10,
-    cardboard: 0
-  },
-
-  campsite: {
-    bottles: 15,
-    cardboard: 0
-  }
+  park: 1,
+  highway: 10,
+  campsite: 15
   
 };
 
@@ -69,12 +60,11 @@ let playerBitmap =  bitmap`
 ................`;
 
 const bottle = "b";
-const cardboard = "y";
+const cardboard = "d";
 const bottleBin = "c";
 
 const wall = "w";
 const environment1 = "e";
-const environment2 = "f";
 
 // Movement
 
@@ -95,6 +85,23 @@ setLegend(
 ....55555.......
 ...0777770......
 ...0000000......
+................
+................`],
+  [cardboard, bitmap`
+................
+................
+................
+................
+................
+................
+....CCCCCC......
+....CCCCCC......
+....CCCCCCC.....
+....CCCCCCC.....
+....CCCCCCC.....
+.....CCCCCC.....
+.....CCCC.......
+................
 ................
 ................`],
   [bottleBin, bitmap`
@@ -178,31 +185,31 @@ const levels = [
 ...................
 ...................`, //title screen
   map`
+wwwwwwwww.cw
 ............
-p.......w.b.
-......www...
-....w.w.....
-.ww.b....b..
-.w....bb....
-.ww...b.ww..
-w.w.b....w..
-w.ww..ww....
-....w.w.....
-.b....w.wc..
-....wwwwww..`, //park, room 1
+............
+............
+p...........
+..........b.
+wwwwww..wwww
+.....w..w...
+.....w..w...
+ed.dddd....e
+e....dd....e
+......ee....`, //park
   map`
+......ee....
 ............
 ............
 ............
 ............
 ............
 ............
+...c........
 ............
 ............
 ............
-............
-............
-............`, //park, room 2
+............`, //highway
   map`
 ...................
 ...................
@@ -228,59 +235,9 @@ setSolids([player, wall]);
 setMap(levels[level]);
 setBackground(environment1);
 
-setPushables({
-  [ player ]: []
-});
-
 // ###############################################
 // ############### GAME OBJECTIVES ###############
 // ###############################################
-
-function bottlePickup(){
-
-  // as long as gatita has less than 3 items in her inventory
-  if ((inventory.bottles + inventory.cardboard) < 2){
-
-    //needs to be specified
-    getFirst(bottle).remove();
-    inventory.bottles += 1;
-    
-    addText("Bottle picked up!", {y: 4, color: color`5`});
-    
-    /*
-    setTimeout(() => {
-      clearText();
-    }, 1000);
-    */
-    
-  };
-    
-};
-
-function recycle(){
-  /*
-  either keep track of bottles and cardboard in a variable, 
-  or only keep track of it in inventory?
-  probably the first one
-  */
-  
-  // if the player's inventory is not the same as the winconditions of the level
-  // and the player has bottles, then add bottles to inventory
-  // keep doing this until the inventory does match up to winconditions
-  if (inventory != winConditions[(level + 1)]){
-    if (inventory.bottles != 0){
-      console.log("BOTTLE(S) RECYCLED: " + inventory.bottles);
-      inventory.bottles -= inventory.bottles;           
-    };
-  } else{
-    console.log("YAYYY U WIN");
-  };
-  
-};
-
-function nextRoom(y){
-  setMap(levels[y])
-};
 
 function nextLevel(currentLevel){
   setMap(levels[x])
@@ -448,144 +405,144 @@ function startGame(){
   */
   
   function movementControl(direction){
+    if (canMove === false){
+      return;
+    }      
     
-    if (canMove === true){
+    canMove = false;
+    
+    switch(direction){
+        
+      case "up":
+        getFirst(player).y -= 1;
+        break;
+        
+      case "down":
+        getFirst(player).y += 1;
+        break;
+        
+      case "left":
+        playerBitmap = bitmap`
+................
+................
+................
+................
+...0...00.......
+...100010.......
+.0.0000000..0...
+..0600600....0..
+.0.0000000...0..
+....22222....0..
+....22200...0...
+....02000000....
+...200020000....
+................
+................
+................`;
+        getFirst(player).x -= 1;
+        break;
+        
+      case "right":
+        playerBitmap = bitmap`
+................
+................
+................
+................
+.......00...0...
+.......010001...
+...0..0000000.0.
+..0....0060060..
+..0...0000000.0.
+..0....22222....
+...0...00222....
+....00000020....
+....000020002...
+................
+................
+................`;
+        getFirst(player).x += 1;
+        break;
+    };
+
+    // If need be revise the below for better performance
+    setLegend(
+      [player, playerBitmap],
+      [bottle, bitmap`
+    ................
+    ....00000.......
+    ....02120.......
+    ....00000.......
+    .....070........
+    ....07770.......
+    ...0777270......
+    ...0777270......
+    ....55525.......
+    ...0777770......
+    ...0777770......
+    ....55555.......
+    ...0777770......
+    ...0000000......
+    ................
+    ................`],
+      [bottleBin, bitmap`
+    ................
+    ................
+    ................
+    ................
+    ................
+    ................
+    ................
+    ...444444444....
+    ...444424444....
+    ....4424244.....
+    ....4242424.....
+    ....4424244.....
+    .....44244......
+    .....44444......
+    ................
+    ................`],
+      [wall, bitmap`
+    CCCCCCCCCCCCCCCC
+    CCCCCCCC11CFCCCC
+    CCCCCC111CFFCCCC
+    C33C11CCCFFCCCCC
+    CCC113FFFFFFCCCC
+    CCC1FFFF3333C1CC
+    CC1FCFFCCCC331CC
+    CC1FFFCCCCC33C1C
+    CC1FFF3CCCC3CC1C
+    CC1FCFFCCC3CCC1C
+    CC1FFF3F3C3CCC1C
+    C1CCCFFFF33CC1CC
+    C11CCC11FFF111CC
+    CC1111CC1111FCCC
+    CCCCCCCCCCCFFCCC
+    CCCCCCCCCCCCCCCC`],
+      [environment1, bitmap`
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222
+    2222222222222222`]
+    );
+    
+    // prevents zooming across the map
+    setTimeout(() => {
+      canMove = true;
+    }, movePause);
       
-      canMove = false;
-      
-      switch(direction){
-          
-        case "up":
-          getFirst(player).y -= 1;
-          break;
-          
-        case "down":
-          getFirst(player).y += 1;
-          break;
-          
-        case "left":
-          playerBitmap = bitmap`
-  ................
-  ................
-  ................
-  ................
-  ...0...00.......
-  ...100010.......
-  .0.0000000..0...
-  ..0600600....0..
-  .0.0000000...0..
-  ....22222....0..
-  ....22200...0...
-  ....02000000....
-  ...200020000....
-  ................
-  ................
-  ................`;
-          getFirst(player).x -= 1;
-          break;
-          
-        case "right":
-          playerBitmap = bitmap`
-  ................
-  ................
-  ................
-  ................
-  .......00...0...
-  .......010001...
-  ...0..0000000.0.
-  ..0....0060060..
-  ..0...0000000.0.
-  ..0....22222....
-  ...0...00222....
-  ....00000020....
-  ....000020002...
-  ................
-  ................
-  ................`;
-          getFirst(player).x += 1;
-          break;
-      };
-  
-      // If need be revise the below for better performance
-      setLegend(
-        [player, playerBitmap],
-        [bottle, bitmap`
-      ................
-      ....00000.......
-      ....02120.......
-      ....00000.......
-      .....070........
-      ....07770.......
-      ...0777270......
-      ...0777270......
-      ....55525.......
-      ...0777770......
-      ...0777770......
-      ....55555.......
-      ...0777770......
-      ...0000000......
-      ................
-      ................`],
-        [bottleBin, bitmap`
-      ................
-      ................
-      ................
-      ................
-      ................
-      ................
-      ................
-      ...444444444....
-      ...444424444....
-      ....4424244.....
-      ....4242424.....
-      ....4424244.....
-      .....44244......
-      .....44444......
-      ................
-      ................`],
-        [wall, bitmap`
-      CCCCCCCCCCCCCCCC
-      CCCCCCCC11CFCCCC
-      CCCCCC111CFFCCCC
-      C33C11CCCFFCCCCC
-      CCC113FFFFFFCCCC
-      CCC1FFFF3333C1CC
-      CC1FCFFCCCC331CC
-      CC1FFFCCCCC33C1C
-      CC1FFF3CCCC3CC1C
-      CC1FCFFCCC3CCC1C
-      CC1FFF3F3C3CCC1C
-      C1CCCFFFF33CC1CC
-      C11CCC11FFF111CC
-      CC1111CC1111FCCC
-      CCCCCCCCCCCFFCCC
-      CCCCCCCCCCCCCCCC`],
-        [environment1, bitmap`
-      2222222222222222
-      2222222222222222
-      2222222222222222
-      2222222222222222
-      2222222222222222
-      2222222222222222
-      2222222222222222
-      2222222222222222
-      2222222222222222
-      2222222222222222
-      2222222222222222
-      2222222222222222
-      2222222222222222
-      2222222222222222
-      2222222222222222
-      2222222222222222`]
-      );
-      
-      // prevents zooming across the map
-      setTimeout(() => {
-        canMove = true;
-      }, movePause);
-      
-    }
-  }
+  };
   
   
   onInput("a", () => {
@@ -597,31 +554,69 @@ function startGame(){
   });
   
   afterInput(() => {
+    //checks everything gatita is on
     row = getFirst(player).x;
     column = getFirst(player).y;
   
-    //checks everything gatita is on
     currentTile = getTile(row, column);
   
-    if (currentTile[1]){
-      
-      switch (currentTile[1].type){
-          
-        // waterbottle
-        case "b":
-          bottlePickup();
-          break;
-          
-        // recycling bin
-        case "c":
-          recycle();
-          break;
-  
-        case "o":
-          nextRoom();
-          break;
-          
-      }
+    if (!currentTile[1]){
+      return;
+    };
+    
+    console.log(currentTile);
+    
+    switch (currentTile[1].type){
+      // waterbottle
+      case "b":
+        if (weight > 3){
+          return;
+        };
+        
+        currentTile[1].remove();
+        weight += 1;
+        inventory.bottles += 1;
+        break;
+
+      /*
+      BUG:
+      *for some reason, the type for this is before the player, not after,
+      causing it to not be picked up. it doesnt do this for any bottle???
+
+      Solutions?:
+      *Check every object within the currenttile instead of just one
+
+      *
+      */
+      //cardboard
+      case "d":
+        console.log("working");
+        if (weight > 3){
+          return;
+        };
+        
+        currentTile[1].remove();
+        weight += 1;
+        inventory.cardboard += 1;
+        break;
+        
+      // recycling bin
+      case "c":
+        inventory.bottles = 0;
+        inventory.cardboard = 0;
+        
+        //should be keeping track of what wincon is
+        if (totalWeight >= winConditions.park){
+          console.log("win!");
+          totalWeight = 0;
+          weight = 0;
+          return;
+        };
+        
+        totalWeight = totalWeight + weight;
+        weight = 0;
+
+        break
       
     };
     
@@ -629,10 +624,4 @@ function startGame(){
   
 };
 
-// potentially an unnecessary function
-function initiate(){
-  displayTitle();
-  
-};
-
-initiate();
+displayTitle();
