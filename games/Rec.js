@@ -1,6 +1,6 @@
 /*
 
-Recycling Cat by @vdelaide on Github and Discord
+Recycling Cat by Me :3
 
 Description: 
 You're a wandering cat living her best life, until, you look around
@@ -17,6 +17,14 @@ J to select, K to restart, L to xyz, I to xyz
 
 */
 
+/*
+TODO:
+*Make background music
+*tidy things up
+*create other title screens
+*fix bug
+*/
+
 // game logic
 
 let weight = 0;
@@ -29,8 +37,10 @@ let inventory = {
 
 const winConditions = {
   // levels in order
-  park: 1,
-  highway: 10,
+  parkOne: 1,
+  parkTwo: 4,
+  parkThree: 9,
+  highwayOne: 10,
   campsite: 15
   
 };
@@ -157,13 +167,25 @@ CCCCCCCCCCCCCCCC`],
 2222222222222222`]
 );
 
+// sound
+
 const movePause = 175;
+const titleSound = tune`
+500: C5~500 + E5~500,
+500: F5^500 + D5^500,
+500: G5^500 + E5^500,
+500,
+500: A4^500 + B4^500,
+500: A4^500,
+13000`;
 const moveSound = tune`
 500: B4~500,
 500: G4~500 + D5~500,
 500: F5^500 + E4^500,
 14500`;
 
+const soundtrack = playTune(titleSound, Infinity);
+  
 // Levels
 let level = 0;
 const levels = [
@@ -185,31 +207,31 @@ const levels = [
 ...................
 ...................`, //title screen
   map`
-wwwwwwwww.cw
-............
-............
-............
 p...........
-..........b.
-wwwwww..wwww
-.....w..w...
-.....w..w...
-ed.dddd....e
-e....dd....e
-......ee....`, //park
+wwwwwwwwwww.
+wwwwwwwwwww.
+...b....b...
+.wwwwww.....
+.w....w.....
+.w....w..w..
+.w....w..w..
+.w....w..c..
+.w....w.....
+.wwwwww....b
+.b..........`, //park
   map`
 ......ee....
 ............
 ............
 ............
+..p.........
 ............
 ............
-............
-...c........
-............
-............
-............
-............`, //highway
+...c..bbbb..
+..........b.
+........bbb.
+.....bbbb...
+............`, //park 2
   map`
 ...................
 ...................
@@ -226,7 +248,7 @@ e....dd....e
 ...................
 ...................
 ...................
-...................` //end screen
+...................` //park 3
 ];
 
 // Maps & Environment
@@ -239,8 +261,8 @@ setBackground(environment1);
 // ############### GAME OBJECTIVES ###############
 // ###############################################
 
-function nextLevel(currentLevel){
-  setMap(levels[x])
+function nextLevel(){
+  setMap(levels[level + 1]);
 };
 
 function timer(){
@@ -288,9 +310,8 @@ function displayTitle(){
   addText("by me :3", {x: 3, y: 3, color: color`0`});
   
   addText("START", {x: 3, y: 5, color: color`0`});
-  addText("MISC", {x: 3, y: 6, color: color`0`});
-  addText("MISC", {x: 3, y: 7, color: color`0`});
-  addText("CREDITS", {x: 3, y: 8, color: color`0`});
+  addText("HOW TO PLAY", {x: 3, y: 6, color: color`0`});
+  addText("OPTIONS", {x: 3, y: 7, color: color`0`});
 
   getFirst(player).bitmap = bitmap`
 ................
@@ -315,7 +336,7 @@ function displayTitle(){
     getFirst(player).y -= 1;
     
     if (getFirst(player).y < 5 && level === 0) {
-      getFirst(player).y = 8;
+      getFirst(player).y = 7;
     }
     
   })
@@ -324,7 +345,7 @@ function displayTitle(){
   
     getFirst(player).y += 1;
     
-    if (getFirst(player).y > 8 && level === 0) {
+    if (getFirst(player).y > 7 && level === 0) {
       getFirst(player).y = 5;
     };
 
@@ -344,13 +365,21 @@ function displayTitle(){
           startGame();
           break;
           
-        case 6: //misc
+        case 6: //how to play
+          clearText();
+          addText("KEYS: ", {x: 1, y: 2, color: color`0`});
+          addText("------", {x: 1, y: 3, color: color`0`});
+          addText("WASD to move", {x: 1, y: 4, color: color`0`});
+          
+          addText("OBJECTIVE:", {x: 1, y: 6, color: color`0`});
+          addText("-----------", {x: 1, y: 7, color: color`0`});
+          addText("Collect all trash", {x: 1, y: 8, color: color`0`});
+          addText("within all levels,", {x: 1, y: 9, color: color`0`});
+          addText("and put them in", {x: 1, y: 10, color: color`0`});
+          addText("the correct bins", {x: 1, y: 10, color: color`0`});
           break;
           
-        case 7: //misc
-          break;
-          
-        case 8: //credits
+        case 7: //options
           break;
           
       };
@@ -412,14 +441,6 @@ function startGame(){
     canMove = false;
     
     switch(direction){
-        
-      case "up":
-        getFirst(player).y -= 1;
-        break;
-        
-      case "down":
-        getFirst(player).y += 1;
-        break;
         
       case "left":
         playerBitmap = bitmap`
@@ -563,9 +584,7 @@ function startGame(){
     if (!currentTile[1]){
       return;
     };
-    
-    console.log(currentTile);
-    
+        
     switch (currentTile[1].type){
       // waterbottle
       case "b":
@@ -590,7 +609,6 @@ function startGame(){
       */
       //cardboard
       case "d":
-        console.log("working");
         if (weight > 3){
           return;
         };
@@ -606,8 +624,8 @@ function startGame(){
         inventory.cardboard = 0;
         
         //should be keeping track of what wincon is
-        if (totalWeight >= winConditions.park){
-          console.log("win!");
+        if (totalWeight >= winConditions.parkOne){
+          nextLevel(levels[level]);
           totalWeight = 0;
           weight = 0;
           return;
