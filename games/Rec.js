@@ -22,7 +22,13 @@ TODO:
 *Make background music
 *tidy things up
 *create other title screens
-*fix bug
+*fix cardboard bug
+*/
+
+/*
+THEMES FOR THE GAME:
+*Cave
+*Lost cat toys?
 */
 
 // game logic
@@ -44,6 +50,7 @@ const winConditions = {
   campsite: 15
   
 };
+let levelCondition = winConditions.parkOne;
 
 let row;
 let column;
@@ -177,14 +184,19 @@ const titleSound = tune`
 500,
 500: A4^500 + B4^500,
 500: A4^500,
-13000`;
+500,
+500: C5~500 + E5~500,
+500: D5^500 + F5^500,
+500: E5^500 + G5^500,
+500,
+500: B4^500 + A4^500,
+500: A4^500,
+9500`;
 const moveSound = tune`
 500: B4~500,
 500: G4~500 + D5~500,
 500: F5^500 + E4^500,
 14500`;
-
-const soundtrack = playTune(titleSound, Infinity);
   
 // Levels
 let level = 0;
@@ -220,18 +232,18 @@ wwwwwwwwwww.
 .wwwwww....b
 .b..........`, //park
   map`
-......ee....
+c.....ee....
 ............
-............
-............
-..p.........
-............
-............
-...c..bbbb..
-..........b.
-........bbb.
-.....bbbb...
-............`, //park 2
+....w.......
+....w....b..
+....w....b..
+.........bb.
+.....ww...b.
+......ww....
+.......w....
+.....ww.....
+.p..ww......
+....w.......`, //park 2
   map`
 ...................
 ...................
@@ -262,7 +274,28 @@ setBackground(environment1);
 // ###############################################
 
 function nextLevel(){
-  setMap(levels[level + 1]);
+  setMap(levels[level]);
+  
+  totalWeight = 0;
+  weight = 0;
+
+  //responsible for aligning the level the player is on with the level's
+  //condition
+  switch (level){
+      
+    case 2:
+      levelCondition = winConditions.parkOne;
+      break;
+      
+    case 3:
+      levelCondition = winConditions.parkTwo;
+      break;
+      
+    case 4:
+      levelCondition = winConditions.parkThree;
+      break;
+      
+  }
 };
 
 function timer(){
@@ -299,140 +332,6 @@ function timer(){
 
 };
 
-// #########################################
-// ############### GAME LOOP ###############
-// #########################################
-
-function displayTitle(){
-  clearText();
-  
-  addText("RECYCLING CAT", {x: 3, y:2, color: color`0`});
-  addText("by me :3", {x: 3, y: 3, color: color`0`});
-  
-  addText("START", {x: 3, y: 5, color: color`0`});
-  addText("HOW TO PLAY", {x: 3, y: 6, color: color`0`});
-  addText("OPTIONS", {x: 3, y: 7, color: color`0`});
-
-  getFirst(player).bitmap = bitmap`
-................
-................
-................
-................
-.....777777.....
-....77777777....
-...7777777777...
-...7777777777...
-...7777777777...
-...7777777777...
-...7777777777...
-....77777777....
-.....777777.....
-................
-................
-................`;
-
-  onInput("w", () => {
-    
-    getFirst(player).y -= 1;
-    
-    if (getFirst(player).y < 5 && level === 0) {
-      getFirst(player).y = 7;
-    }
-    
-  })
-
-  onInput("s", () => {
-  
-    getFirst(player).y += 1;
-    
-    if (getFirst(player).y > 7 && level === 0) {
-      getFirst(player).y = 5;
-    };
-
-    if (getFirst(player).y > 6 && level === 4){
-      getFirst(player).y = 5;
-    };
-    
-  })
-  
-  onInput("j", () => {
-
-    if (level === 0){
-      
-      switch (getFirst(player).y){
-        
-        case 5: //start game
-          startGame();
-          break;
-          
-        case 6: //how to play
-          clearText();
-          addText("KEYS: ", {x: 1, y: 2, color: color`0`});
-          addText("------", {x: 1, y: 3, color: color`0`});
-          addText("WASD to move", {x: 1, y: 4, color: color`0`});
-          
-          addText("OBJECTIVE:", {x: 1, y: 6, color: color`0`});
-          addText("-----------", {x: 1, y: 7, color: color`0`});
-          addText("Collect all trash", {x: 1, y: 8, color: color`0`});
-          addText("within all levels,", {x: 1, y: 9, color: color`0`});
-          addText("and put them in", {x: 1, y: 10, color: color`0`});
-          addText("the correct bins", {x: 1, y: 10, color: color`0`});
-          break;
-          
-        case 7: //options
-          break;
-          
-      };
-      
-    };
-    
-  })
-  
-};
-
-function startGame(){
-  clearText();
-  level = 1;
-  setMap(levels[level]); //park
-  timer();
-
-  playerBitmap = bitmap`
-................
-................
-................
-................
-.......00...0...
-.......010001...
-...0..0000000.0.
-..0....0060060..
-..0...0000000.0.
-..0....22222....
-...0...00222....
-....00000020....
-....000020002...
-................
-................
-................`;
-  setLegend([player, playerBitmap]);
-
-  /*
-  I deeply and genuinely apologize to all on god's green and blue earth
-  that must witness this abomination
-  
-  for those wondering how the movement works:
-  *the player sprite is both the cursor and the kitty cat
-  *at the start, the player is just the cursor and can only move up, down,
-  and press J to select
-  *when starting, the player is then given the ability to move left and right,
-  and finally turned into the cat sprite
-  *all W, S, and J presses will, after the start screen, have to check
-  what level it's on each time, even if it's not on the start screen
-  **To sum it all up: movement is fragmented in 2 functions, and 6 conditional
-  statements, all in different parts of the game that'll never ever interact
-  with each other again
-  ***i tried :)
-  */
-  
   function movementControl(direction){
     if (canMove === false){
       return;
@@ -441,8 +340,27 @@ function startGame(){
     canMove = false;
     
     switch(direction){
+
+      case "up":
+        getFirst(player).y -= 1;
+      
+        if (getFirst(player).y < 5 && level === 0) {
+          getFirst(player).y = 7;
+        };
+        break;
+        
+      case "down":
+        getFirst(player).y += 1;
+  
+        if (getFirst(player).y > 7 && level === 0) {
+          getFirst(player).y = 5;
+        };
+        break;
         
       case "left":
+        if (level === 0){
+          break;
+        }
         playerBitmap = bitmap`
 ................
 ................
@@ -464,6 +382,9 @@ function startGame(){
         break;
         
       case "right":
+        if (level === 0){
+          break;
+        }
         playerBitmap = bitmap`
 ................
 ................
@@ -564,15 +485,114 @@ function startGame(){
     }, movePause);
       
   };
+
+// #########################################
+// ############### GAME LOOP ###############
+// #########################################
+
+function displayTitle(){
+  clearText();
   
+  addText("RECYCLING CAT", {x: 3, y:2, color: color`0`});
+  addText("by me :3", {x: 3, y: 3, color: color`0`});
   
+  addText("START", {x: 3, y: 5, color: color`0`});
+  addText("HOW TO PLAY", {x: 3, y: 6, color: color`0`});
+  addText("OPTIONS", {x: 3, y: 7, color: color`0`});
+
+  getFirst(player).bitmap = bitmap`
+................
+................
+................
+................
+.....777777.....
+....77777777....
+...7777777777...
+...7777777777...
+...7777777777...
+...7777777777...
+...7777777777...
+....77777777....
+.....777777.....
+................
+................
+................`;
+
+  onInput("w", () => {
+    movementControl("up");
+  })
+
   onInput("a", () => {
     movementControl("left");
   });
-  
+
+  onInput("s", () => {
+    movementControl("down");
+  })
+
   onInput("d", () => {
     movementControl("right");
   });
+  
+  onInput("j", () => {
+
+    if (level === 0){
+      
+      switch (getFirst(player).y){
+        
+        case 5: //start game
+          startGame();
+          break;
+          
+        case 6: //how to play
+          clearText();
+          addText("KEYS: ", {x: 1, y: 2, color: color`0`});
+          addText("------", {x: 1, y: 3, color: color`0`});
+          addText("WASD to move", {x: 1, y: 4, color: color`0`});
+          
+          addText("OBJECTIVE:", {x: 1, y: 6, color: color`0`});
+          addText("-----------", {x: 1, y: 7, color: color`0`});
+          addText("Collect all trash", {x: 1, y: 8, color: color`0`});
+          addText("within all levels,", {x: 1, y: 9, color: color`0`});
+          addText("and put them in", {x: 1, y: 10, color: color`0`});
+          addText("the correct bins", {x: 1, y: 10, color: color`0`});
+          break;
+          
+        case 7: //options
+          break;
+          
+      };
+      
+    };
+    
+  })
+  
+};
+
+function startGame(){
+  clearText();
+  level = 1;
+  setMap(levels[level]); //park
+  timer();
+
+  playerBitmap = bitmap`
+................
+................
+................
+................
+.......00...0...
+.......010001...
+...0..0000000.0.
+..0....0060060..
+..0...0000000.0.
+..0....22222....
+...0...00222....
+....00000020....
+....000020002...
+................
+................
+................`;
+  setLegend([player, playerBitmap]);
   
   afterInput(() => {
     //checks everything gatita is on
@@ -619,21 +639,20 @@ function startGame(){
         break;
         
       // recycling bin
+      // BUG: next level not working until stepping on it twice
       case "c":
         inventory.bottles = 0;
         inventory.cardboard = 0;
-        
-        //should be keeping track of what wincon is
-        if (totalWeight >= winConditions.parkOne){
-          nextLevel(levels[level]);
-          totalWeight = 0;
-          weight = 0;
+
+        // Moves player to next level if requirements are met
+        if (totalWeight >= levelCondition){
+          level += 1;
+          nextLevel();
           return;
         };
         
         totalWeight = totalWeight + weight;
         weight = 0;
-
         break
       
     };
