@@ -1,5 +1,4 @@
 /*
-
 Recycling Cat by Me :3
 
 Description: 
@@ -34,23 +33,13 @@ THEMES FOR THE GAME:
 // game logic
 
 let weight = 0;
-let totalWeight = 0; //check against winconditions
+let totalObjsInLevel;
+
 let canMove = true;
 let inventory = {
   bottles: 0,
   cardboard: 0
 };
-
-const winConditions = {
-  // levels in order
-  parkOne: 1,
-  parkTwo: 4,
-  parkThree: 9,
-  highwayOne: 10,
-  campsite: 15
-  
-};
-let levelCondition = winConditions.parkOne;
 
 let row;
 let column;
@@ -275,31 +264,13 @@ setBackground(environment1);
 
 function nextLevel(){
   setMap(levels[level]);
-  
-  totalWeight = 0;
-  weight = 0;
 
-  //responsible for aligning the level the player is on with the level's
-  //condition
-  switch (level){
-      
-    case 2:
-      levelCondition = winConditions.parkOne;
-      break;
-      
-    case 3:
-      levelCondition = winConditions.parkTwo;
-      break;
-      
-    case 4:
-      levelCondition = winConditions.parkThree;
-      break;
-      
-  }
+  totalObjsInLevel = tilesWith(bottle);
+  weight = 0;
 };
 
 function timer(){
-  let seconds = 180;
+  let seconds = 300;
   const timerInterval = setInterval(countdown, 1000);
   
   function countdown(){
@@ -332,36 +303,36 @@ function timer(){
 
 };
 
-  function movementControl(direction){
-    if (canMove === false){
-      return;
-    }      
-    
-    canMove = false;
-    
-    switch(direction){
-
-      case "up":
-        getFirst(player).y -= 1;
-      
-        if (getFirst(player).y < 5 && level === 0) {
-          getFirst(player).y = 7;
-        };
-        break;
-        
-      case "down":
-        getFirst(player).y += 1;
+function movementControl(direction){
+  if (canMove === false){
+    return;
+  }      
   
-        if (getFirst(player).y > 7 && level === 0) {
-          getFirst(player).y = 5;
-        };
+  canMove = false;
+  
+  switch(direction){
+
+    case "up":
+      getFirst(player).y -= 1;
+    
+      if (getFirst(player).y < 5 && level === 0) {
+        getFirst(player).y = 7;
+      };
+      break;
+      
+    case "down":
+      getFirst(player).y += 1;
+
+      if (getFirst(player).y > 7 && level === 0) {
+        getFirst(player).y = 5;
+      };
+      break;
+      
+    case "left":
+      if (level === 0){
         break;
-        
-      case "left":
-        if (level === 0){
-          break;
-        }
-        playerBitmap = bitmap`
+      }
+      playerBitmap = bitmap`
 ................
 ................
 ................
@@ -378,14 +349,14 @@ function timer(){
 ................
 ................
 ................`;
-        getFirst(player).x -= 1;
+      getFirst(player).x -= 1;
+      break;
+      
+    case "right":
+      if (level === 0){
         break;
-        
-      case "right":
-        if (level === 0){
-          break;
-        }
-        playerBitmap = bitmap`
+      }
+      playerBitmap = bitmap`
 ................
 ................
 ................
@@ -402,89 +373,89 @@ function timer(){
 ................
 ................
 ................`;
-        getFirst(player).x += 1;
-        break;
-    };
-
-    // If need be revise the below for better performance
-    setLegend(
-      [player, playerBitmap],
-      [bottle, bitmap`
-    ................
-    ....00000.......
-    ....02120.......
-    ....00000.......
-    .....070........
-    ....07770.......
-    ...0777270......
-    ...0777270......
-    ....55525.......
-    ...0777770......
-    ...0777770......
-    ....55555.......
-    ...0777770......
-    ...0000000......
-    ................
-    ................`],
-      [bottleBin, bitmap`
-    ................
-    ................
-    ................
-    ................
-    ................
-    ................
-    ................
-    ...444444444....
-    ...444424444....
-    ....4424244.....
-    ....4242424.....
-    ....4424244.....
-    .....44244......
-    .....44444......
-    ................
-    ................`],
-      [wall, bitmap`
-    CCCCCCCCCCCCCCCC
-    CCCCCCCC11CFCCCC
-    CCCCCC111CFFCCCC
-    C33C11CCCFFCCCCC
-    CCC113FFFFFFCCCC
-    CCC1FFFF3333C1CC
-    CC1FCFFCCCC331CC
-    CC1FFFCCCCC33C1C
-    CC1FFF3CCCC3CC1C
-    CC1FCFFCCC3CCC1C
-    CC1FFF3F3C3CCC1C
-    C1CCCFFFF33CC1CC
-    C11CCC11FFF111CC
-    CC1111CC1111FCCC
-    CCCCCCCCCCCFFCCC
-    CCCCCCCCCCCCCCCC`],
-      [environment1, bitmap`
-    2222222222222222
-    2222222222222222
-    2222222222222222
-    2222222222222222
-    2222222222222222
-    2222222222222222
-    2222222222222222
-    2222222222222222
-    2222222222222222
-    2222222222222222
-    2222222222222222
-    2222222222222222
-    2222222222222222
-    2222222222222222
-    2222222222222222
-    2222222222222222`]
-    );
-    
-    // prevents zooming across the map
-    setTimeout(() => {
-      canMove = true;
-    }, movePause);
-      
+      getFirst(player).x += 1;
+      break;
   };
+
+  // If need be revise the below for better performance
+  setLegend(
+    [player, playerBitmap],
+    [bottle, bitmap`
+  ................
+  ....00000.......
+  ....02120.......
+  ....00000.......
+  .....070........
+  ....07770.......
+  ...0777270......
+  ...0777270......
+  ....55525.......
+  ...0777770......
+  ...0777770......
+  ....55555.......
+  ...0777770......
+  ...0000000......
+  ................
+  ................`],
+    [bottleBin, bitmap`
+  ................
+  ................
+  ................
+  ................
+  ................
+  ................
+  ................
+  ...444444444....
+  ...444424444....
+  ....4424244.....
+  ....4242424.....
+  ....4424244.....
+  .....44244......
+  .....44444......
+  ................
+  ................`],
+    [wall, bitmap`
+  CCCCCCCCCCCCCCCC
+  CCCCCCCC11CFCCCC
+  CCCCCC111CFFCCCC
+  C33C11CCCFFCCCCC
+  CCC113FFFFFFCCCC
+  CCC1FFFF3333C1CC
+  CC1FCFFCCCC331CC
+  CC1FFFCCCCC33C1C
+  CC1FFF3CCCC3CC1C
+  CC1FCFFCCC3CCC1C
+  CC1FFF3F3C3CCC1C
+  C1CCCFFFF33CC1CC
+  C11CCC11FFF111CC
+  CC1111CC1111FCCC
+  CCCCCCCCCCCFFCCC
+  CCCCCCCCCCCCCCCC`],
+    [environment1, bitmap`
+  2222222222222222
+  2222222222222222
+  2222222222222222
+  2222222222222222
+  2222222222222222
+  2222222222222222
+  2222222222222222
+  2222222222222222
+  2222222222222222
+  2222222222222222
+  2222222222222222
+  2222222222222222
+  2222222222222222
+  2222222222222222
+  2222222222222222
+  2222222222222222`]
+  );
+  
+  // prevents zooming across the map
+  setTimeout(() => {
+    canMove = true;
+  }, movePause);
+    
+};
 
 // #########################################
 // ############### GAME LOOP ###############
@@ -573,6 +544,8 @@ function startGame(){
   clearText();
   level = 1;
   setMap(levels[level]); //park
+  totalObjsInLevel = tilesWith(bottle);
+  console.log("sofaslkdfj" + totalObjsInLevel);
   timer();
 
   playerBitmap = bitmap`
@@ -616,43 +589,22 @@ function startGame(){
         weight += 1;
         inventory.bottles += 1;
         break;
-
-      /*
-      BUG:
-      *for some reason, the type for this is before the player, not after,
-      causing it to not be picked up. it doesnt do this for any bottle???
-
-      Solutions?:
-      *Check every object within the currenttile instead of just one
-
-      *
-      */
-      //cardboard
-      case "d":
-        if (weight > 3){
-          return;
-        };
-        
-        currentTile[1].remove();
-        weight += 1;
-        inventory.cardboard += 1;
-        break;
         
       // recycling bin
-      // BUG: next level not working until stepping on it twice
       case "c":
+        totalObjsInLevel = tilesWith(bottle);
         inventory.bottles = 0;
-        inventory.cardboard = 0;
-
-        // Moves player to next level if requirements are met
-        if (totalWeight >= levelCondition){
+        
+        weight = 0;
+        console.log(totalObjsInLevel);
+        
+        // Moves player to next level if the necessary objects are collected
+        // (by weight)
+        if (totalObjsInLevel.length === 0){
           level += 1;
           nextLevel();
           return;
         };
-        
-        totalWeight = totalWeight + weight;
-        weight = 0;
         break
       
     };
